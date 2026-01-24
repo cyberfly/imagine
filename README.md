@@ -2,6 +2,8 @@
 
 A Python-based image optimization tool that intelligently reduces high-resolution images to **<100KB** for web use while maintaining excellent visual quality.
 
+![Imagine GUI](screenshot.png)
+
 ## Features
 
 - **Dual Interface**: Modern PyQt6 GUI (`imagine`) and CLI (`imagine-cli`)
@@ -86,51 +88,6 @@ imagine-cli optimize photos/*.jpg --dry-run
 imagine-cli info photo.jpg
 ```
 
-## How It Works
-
-### Optimization Algorithm
-
-Imagine uses an **adaptive multi-pass strategy**:
-
-1. **Analysis Phase**
-   - Reads image dimensions, format, and EXIF data
-   - Auto-rotates based on EXIF orientation
-   - Determines orientation (landscape/portrait/square)
-
-2. **Dimension Optimization**
-   - **Landscape**: Max width 1920px (maintains aspect ratio)
-   - **Portrait**: Max height 1920px (maintains aspect ratio)
-   - **Square**: Max 1920x1920px
-   - Rationale: 1920px matches modern displays; larger wastes bandwidth
-
-3. **Compression Strategy**
-   ```
-   Start with quality=85
-   While file size > target AND quality > 60:
-       Reduce quality by 5
-       Re-encode to WebP
-       Check file size
-
-   If still > target:
-       Reduce dimensions by 10%
-       Retry compression loop
-
-   Stop when: target reached OR quality < 60 OR dimensions < 50% original
-   ```
-
-4. **Format Selection**
-   - **Primary**: WebP (superior compression)
-   - **Fallback**: JPEG (if specified)
-   - **Transparency**: Preserves alpha channel in WebP/PNG
-
-### Why These Defaults?
-
-- **<100KB target**: Fast loading on all connections, including mobile
-- **WebP format**: 25-35% smaller than JPEG at equivalent quality
-- **1920px max**: Matches 1080p displays; larger is excessive for web
-- **Quality ≥60**: Below this, compression artifacts become visible
-- **Separate folder**: Protects originals, easy before/after comparison
-
 ## CLI Reference
 
 ### Main Command: `optimize`
@@ -210,58 +167,6 @@ imagine-cli optimize photos/* --dry-run
 
 # Get info about an image
 imagine-cli info large-photo.jpg
-```
-
-## Architecture
-
-### Clean Separation of Concerns
-
-The project is designed with a clean separation between core logic and UI:
-
-```
-imagine/
-├── core/              # UI-agnostic image processing
-│   ├── optimizer.py   # Main ImageOptimizer class
-│   ├── strategy.py    # AdaptiveStrategy algorithm
-│   ├── processor.py   # Low-level Pillow operations
-│   ├── analyzer.py    # Image analysis
-│   └── config.py      # Dataclasses for config and results
-├── gui/               # PyQt6 GUI interface
-│   ├── app.py         # Application entry point
-│   ├── main_window.py # Main window layout
-│   ├── widgets/       # Custom widgets (settings, progress, image list)
-│   ├── workers/       # Background optimization workers
-│   ├── models/        # Data models
-│   └── utils/         # GUI utilities and theming
-├── cli/               # CLI interface (Click)
-│   └── main.py
-└── utils/             # Shared utilities
-```
-
-### Using the Core in Your Application
-
-The core can be easily integrated into any Python application:
-
-```python
-from imagine.core.optimizer import ImageOptimizer
-from imagine.core.config import OptimizationConfig
-
-# In your application
-config = OptimizationConfig(target_size_kb=100)
-optimizer = ImageOptimizer(config)
-
-# With progress callback
-def update_progress(current, total):
-    progress_bar.setValue(current / total * 100)
-
-result = optimizer.optimize(
-    input_path,
-    output_path,
-    callback=update_progress
-)
-
-# Display result
-print(f"Size reduced by {result.size_reduction_percent:.1f}%")
 ```
 
 ## Development
