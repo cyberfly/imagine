@@ -4,13 +4,15 @@ A Python-based image optimization tool that intelligently reduces high-resolutio
 
 ## Features
 
+- **Dual Interface**: Modern PyQt6 GUI (`imagine`) and CLI (`imagine-cli`)
 - **Smart Optimization**: Adaptive algorithm that balances quality and file size
 - **WebP Support**: Default output in WebP format (25-35% better compression than JPEG)
 - **Aspect Ratio Preservation**: Maintains original proportions for all orientations
 - **Batch Processing**: Optimize multiple images at once with progress tracking
+- **Real-time Feedback**: Visual progress tracking and optimization statistics
+- **Drag & Drop**: Easy image loading in GUI mode
 - **Safe by Default**: Saves to separate `optimized/` folder, never modifies originals
-- **CLI Interface**: Simple command-line interface with extensive options
-- **Future-Ready**: Core architecture designed for easy GUI integration
+- **Persistent Settings**: GUI remembers your preferences across sessions
 
 ## Installation
 
@@ -31,43 +33,57 @@ pip install -e ".[dev]"
 
 - Python 3.9 or higher
 - Pillow (PIL) for image processing
+- PyQt6 for GUI interface
 - Click for CLI interface
 
 ## Quick Start
 
-### Basic Usage
+### GUI Mode (Recommended)
+
+```bash
+# Launch the graphical interface
+imagine
+
+# Features:
+# - Drag & drop images or use "Add Images" button
+# - Configure settings: target size, format, quality
+# - Real-time progress tracking
+# - View optimization results and statistics
+```
+
+### CLI Mode
 
 ```bash
 # Optimize a single image
-imagine optimize photo.jpg
+imagine-cli optimize photo.jpg
 
 # Optimize multiple images
-imagine optimize photos/*.jpg photos/*.png
+imagine-cli optimize photos/*.jpg photos/*.png
 
 # Check result
 ls -lh optimized/
 ```
 
-### Common Options
+### CLI Options
 
 ```bash
 # Custom output directory
-imagine optimize photo.jpg -d my-optimized/
+imagine-cli optimize photo.jpg -d my-optimized/
 
 # Target different file size (in KB)
-imagine optimize photo.jpg --target-size 150
+imagine-cli optimize photo.jpg --target-size 150
 
 # Force JPEG output instead of WebP
-imagine optimize photo.jpg --format jpeg
+imagine-cli optimize photo.jpg --format jpeg
 
 # Show detailed progress
-imagine optimize photos/*.jpg --verbose
+imagine-cli optimize photos/*.jpg --verbose
 
 # Preview without saving
-imagine optimize photos/*.jpg --dry-run
+imagine-cli optimize photos/*.jpg --dry-run
 
 # Get image information
-imagine info photo.jpg
+imagine-cli info photo.jpg
 ```
 
 ## How It Works
@@ -120,7 +136,7 @@ Imagine uses an **adaptive multi-pass strategy**:
 ### Main Command: `optimize`
 
 ```
-imagine optimize [OPTIONS] IMAGES...
+imagine-cli optimize [OPTIONS] IMAGES...
 
 Options:
   -d, --output-dir PATH           Output directory [default: optimized]
@@ -137,7 +153,7 @@ Options:
 ### Info Command: `info`
 
 ```
-imagine info IMAGE
+imagine-cli info IMAGE
 
 Display information about an image:
 - Dimensions
@@ -154,51 +170,51 @@ Display information about an image:
 
 ```bash
 # Standard web optimization
-imagine optimize hero-image.jpg
+imagine-cli optimize hero-image.jpg
 # Result: optimized/hero-image.webp (<100KB)
 
 # Smaller target for thumbnails
-imagine optimize thumbnail.jpg --target-size 50
+imagine-cli optimize thumbnail.jpg --target-size 50
 
 # Preserve maximum quality
-imagine optimize product.png --min-quality 80 --max-quality 95
+imagine-cli optimize product.png --min-quality 80 --max-quality 95
 
 # Smaller max dimension for mobile
-imagine optimize mobile-banner.jpg --max-dimension 1280
+imagine-cli optimize mobile-banner.jpg --max-dimension 1280
 
 # JPEG output for compatibility
-imagine optimize photo.jpg --format jpeg
+imagine-cli optimize photo.jpg --format jpeg
 ```
 
 ### Batch Processing
 
 ```bash
 # Optimize all images in a directory
-imagine optimize photos/*
+imagine-cli optimize photos/*
 
 # Specific formats only
-imagine optimize *.jpg *.png
+imagine-cli optimize *.jpg *.png
 
 # With progress and summary
-imagine optimize gallery/*.jpg --verbose
+imagine-cli optimize gallery/*.jpg --verbose
 
 # Custom output location
-imagine optimize products/* -d ../website/images/optimized/
+imagine-cli optimize products/* -d ../website/images/optimized/
 ```
 
 ### Check Before Processing
 
 ```bash
 # Preview what would be processed
-imagine optimize photos/* --dry-run
+imagine-cli optimize photos/* --dry-run
 
 # Get info about an image
-imagine info large-photo.jpg
+imagine-cli info large-photo.jpg
 ```
 
 ## Architecture
 
-### UI-Agnostic Core
+### Clean Separation of Concerns
 
 The project is designed with a clean separation between core logic and UI:
 
@@ -210,20 +226,27 @@ imagine/
 │   ├── processor.py   # Low-level Pillow operations
 │   ├── analyzer.py    # Image analysis
 │   └── config.py      # Dataclasses for config and results
+├── gui/               # PyQt6 GUI interface
+│   ├── app.py         # Application entry point
+│   ├── main_window.py # Main window layout
+│   ├── widgets/       # Custom widgets (settings, progress, image list)
+│   ├── workers/       # Background optimization workers
+│   ├── models/        # Data models
+│   └── utils/         # GUI utilities and theming
 ├── cli/               # CLI interface (Click)
 │   └── main.py
 └── utils/             # Shared utilities
 ```
 
-### Future GUI Integration
+### Using the Core in Your Application
 
-The core can be easily integrated into a native Mac app:
+The core can be easily integrated into any Python application:
 
 ```python
 from imagine.core.optimizer import ImageOptimizer
 from imagine.core.config import OptimizationConfig
 
-# In your GUI application
+# In your application
 config = OptimizationConfig(target_size_kb=100)
 optimizer = ImageOptimizer(config)
 
@@ -259,13 +282,14 @@ pytest --cov=imagine --cov-report=html
 ### Project Structure
 
 - `imagine/core/` - Core optimization logic (UI-agnostic)
+- `imagine/gui/` - PyQt6 graphical interface
 - `imagine/cli/` - Command-line interface
 - `tests/` - Test suite
 - `pyproject.toml` - Project configuration and dependencies
 
 ## Troubleshooting
 
-### "Command not found: imagine"
+### "Command not found: imagine" or "Command not found: imagine-cli"
 
 Make sure you installed the package:
 ```bash
@@ -274,7 +298,11 @@ pip install -e .
 
 Or run directly:
 ```bash
-python -m imagine optimize photo.jpg
+# GUI mode
+python -m imagine.gui.app
+
+# CLI mode
+python -m imagine.cli.main optimize photo.jpg
 ```
 
 ### Images still over 100KB
@@ -296,17 +324,21 @@ MIT License - feel free to use in personal and commercial projects.
 ## Contributing
 
 Contributions welcome! Areas for improvement:
-- Additional output formats
+- Additional output formats (AVIF, HEIC)
 - More optimization strategies
-- GUI implementation
+- GUI enhancements (before/after preview, batch comparison)
 - Performance optimizations
 - Additional test coverage
+- macOS native app packaging
 
 ## Future Roadmap
 
-- [ ] Native Mac app with drag-and-drop interface
-- [ ] Batch preview with before/after comparison
+- [x] GUI with drag-and-drop interface
+- [x] Real-time progress tracking
+- [x] Persistent settings
+- [ ] Before/after image comparison in GUI
 - [ ] Custom optimization profiles
 - [ ] AVIF format support
 - [ ] Advanced EXIF preservation options
+- [ ] Native Mac app bundle
 - [ ] Integration with popular frameworks (Next.js, etc.)
