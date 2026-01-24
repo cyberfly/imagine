@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "imagine"
+version = "0.1.0"
+description = "Image optimization tool for web with focus on <100KB targets"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    {name = "Imagine Developer"}
+]
+dependencies = [
+    "pillow>=10.0.0",
+    "click>=8.1.0",
+    "pyqt6>=6.6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.scripts]
+imagine = "imagine.gui.app:main"
+imagine-cli = "imagine.cli.main:cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["imagine*"]
+exclude = ["tests*", "optimized*", "test-images*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Imagine Image Optimizer Launcher
+# This script launches the Imagine GUI application
+
+# Set up environment
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+
+# Add pyenv to path if it exists
+if [ -d "$HOME/.pyenv/shims" ]; then
+    export PATH="$HOME/.pyenv/shims:$PATH"
+fi
+
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+APP_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+
+# Change to home directory to avoid permission issues
+cd "$HOME"
+
+# Launch the Imagine GUI
+# Try to use the imagine command from PATH
+if command -v imagine &> /dev/null; then
+    imagine
+else
+    # Fallback: try to run directly with python
+    python -m imagine.gui.app
+fi
