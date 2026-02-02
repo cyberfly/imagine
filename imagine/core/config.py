@@ -11,6 +11,7 @@ class ImageFormat(Enum):
     WEBP = "webp"
     JPEG = "jpeg"
     PNG = "png"
+    AVIF = "avif"
 
 
 class ImageOrientation(Enum):

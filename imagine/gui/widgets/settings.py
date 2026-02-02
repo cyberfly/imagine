@@ -186,7 +186,7 @@ class SettingsWidget(QWidget):
 
         # Output Format
         self.format_combo = QComboBox()
-        self.format_combo.addItems(["WebP", "JPEG", "PNG"])
+        self.format_combo.addItems(["WebP", "JPEG", "PNG", "AVIF"])
         self.format_combo.currentTextChanged.connect(self._on_settings_changed)
         form_layout.addRow("Output Format:", self.format_combo)
 
@@ -360,6 +360,7 @@ class SettingsWidget(QWidget):
             "WebP": ImageFormat.WEBP,
             "JPEG": ImageFormat.JPEG,
             "PNG": ImageFormat.PNG,
+            "AVIF": ImageFormat.AVIF,
         }
 
         # Map UI position name to WatermarkPosition enum

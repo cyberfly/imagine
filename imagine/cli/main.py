@@ -35,7 +35,7 @@ def cli():
     "--format",
     "output_format",
     default="webp",
-    type=click.Choice(["webp", "jpeg", "png"], case_sensitive=False),
+    type=click.Choice(["webp", "jpeg", "png", "avif"], case_sensitive=False),
     help="Output image format"
 )
 @click.option(
@@ -195,7 +195,7 @@ def _collect_image_paths(patterns: tuple) -> List[Path]:
         List of Path objects
     """
     image_paths = []
-    valid_extensions = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tiff"}
+    valid_extensions = {".jpg", ".jpeg", ".png", ".webp", ".avif", ".gif", ".bmp", ".tiff"}
 
     for pattern in patterns:
         path = Path(pattern)

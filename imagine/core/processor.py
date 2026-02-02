@@ -6,6 +6,13 @@ from typing import Optional
 
 from PIL import Image, ImageOps, ImageDraw, ImageFont
 
+# Register HEIF plugin for AVIF support
+try:
+    from pillow_heif import register_heif_opener
+    register_heif_opener()
+except ImportError:
+    pass  # AVIF support optional
+
 from .config import ImageFormat, ImageInfo, ImageOrientation, WatermarkPosition
 
 
@@ -280,6 +287,42 @@ def compress_to_png(
     return output.getvalue()
 
 
+def compress_to_avif(
+    img: Image.Image,
+    quality: int,
+    has_transparency: bool
+) -> bytes:
+    """
+    Compress image to AVIF format.
+
+    Args:
+        img: PIL Image object
+        quality: Quality setting (0-100)
+        has_transparency: Whether to preserve transparency
+
+    Returns:
+        Compressed image as bytes
+    """
+    output = io.BytesIO()
+
+    # AVIF options
+    save_kwargs = {
+        "format": "AVIF",
+        "quality": quality,
+    }
+
+    # Handle transparency
+    if has_transparency and img.mode in ("RGBA", "LA"):
+        # AVIF supports transparency
+        pass
+    elif img.mode not in ("RGB", "L"):
+        # Convert to RGB if no transparency needed
+        img = img.convert("RGB")
+
+    img.save(output, **save_kwargs)
+    return output.getvalue()
+
+
 def compress_image(
     img: Image.Image,
     output_format: ImageFormat,
@@ -304,6 +347,8 @@ def compress_image(
         return compress_to_jpeg(img, quality)
     elif output_format == ImageFormat.PNG:
         return compress_to_png(img)
+    elif output_format == ImageFormat.AVIF:
+        return compress_to_avif(img, quality, has_transparency)
     else:
         raise ValueError(f"Unsupported format: {output_format}")
 

@@ -8,7 +8,8 @@ A Python-based image optimization tool that intelligently reduces high-resolutio
 
 - **Dual Interface**: Modern PyQt6 GUI (`imagine`) and CLI (`imagine-cli`)
 - **Smart Optimization**: Adaptive algorithm that balances quality and file size
-- **WebP Support**: Default output in WebP format (25-35% better compression than JPEG)
+- **Multiple Formats**: WebP, AVIF, JPEG, and PNG output support
+- **WebP & AVIF Support**: Modern formats with superior compression (25-35% better than JPEG)
 - **Watermark Support**: Add customizable text watermarks with flexible positioning
 - **Aspect Ratio Preservation**: Maintains original proportions for all orientations
 - **Batch Processing**: Optimize multiple images at once with progress tracking
@@ -105,7 +106,7 @@ imagine-cli optimize [OPTIONS] IMAGES...
 Options:
   -d, --output-dir PATH           Output directory [default: optimized]
   --target-size INTEGER           Target file size in KB [default: 100]
-  --format [webp|jpeg|png]        Output format [default: webp]
+  --format [webp|jpeg|png|avif]   Output format [default: webp]
   --max-dimension INTEGER         Max width/height in pixels [default: 1920]
   --min-quality INTEGER           Minimum quality (1-100) [default: 60]
   --max-quality INTEGER           Starting quality (1-100) [default: 85]
@@ -161,6 +162,9 @@ imagine-cli optimize mobile-banner.jpg --max-dimension 1280
 
 # JPEG output for compatibility
 imagine-cli optimize photo.jpg --format jpeg
+
+# AVIF output for maximum compression (newer browsers)
+imagine-cli optimize photo.jpg --format avif
 ```
 
 ### Batch Processing
@@ -238,9 +242,9 @@ Some images may be difficult to compress below 100KB while maintaining quality â
 - Using `--format jpeg` (WebP is usually better though)
 - Reducing `--max-dimension`
 
-### WebP not supported
+### WebP/AVIF not supported
 
-WebP is supported by all modern browsers (Chrome, Firefox, Safari, Edge). For legacy support, use `--format jpeg`.
+WebP and AVIF are supported by all modern browsers (Chrome, Firefox, Safari, Edge). AVIF offers even better compression than WebP but has slightly less browser support. For legacy support, use `--format jpeg`.
 
 ## License
 
@@ -249,7 +253,7 @@ MIT License - feel free to use in personal and commercial projects.
 ## Contributing
 
 Contributions welcome! Areas for improvement:
-- Additional output formats (AVIF, HEIC)
+- Additional output formats (HEIC)
 - More optimization strategies
 - GUI enhancements (before/after preview, batch comparison)
 - Performance optimizations
@@ -261,9 +265,9 @@ Contributions welcome! Areas for improvement:
 - [x] GUI with drag-and-drop interface
 - [x] Real-time progress tracking
 - [x] Persistent settings
+- [x] AVIF format support
 - [ ] Before/after image comparison in GUI
 - [ ] Custom optimization profiles
-- [ ] AVIF format support
 - [ ] Advanced EXIF preservation options
 - [ ] Native Mac app bundle
 - [ ] Integration with popular frameworks (Next.js, etc.)

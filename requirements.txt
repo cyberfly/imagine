@@ -1,5 +1,6 @@
 # Core dependencies
 pillow>=10.0.0
+pillow-heif>=0.13.0  # AVIF and HEIC support
 click>=8.1.0
 pyqt6>=6.6.0
 
