@@ -6,7 +6,7 @@ from typing import List, Optional
 
 import click
 
-from imagine.core.config import ImageFormat, OptimizationConfig
+from imagine.core.config import ImageFormat, OptimizationConfig, WatermarkPosition
 from imagine.core.optimizer import ImageOptimizer
 
 
@@ -66,6 +66,23 @@ def cli():
     is_flag=True,
     help="Preview without saving files"
 )
+@click.option(
+    "--watermark",
+    is_flag=True,
+    help="Add watermark to optimized images"
+)
+@click.option(
+    "--watermark-text",
+    default="Imagine",
+    help="Text to use for watermark",
+    type=str
+)
+@click.option(
+    "--watermark-position",
+    default="bottom-right",
+    type=click.Choice(["top-left", "top-right", "bottom-left", "bottom-right", "center"], case_sensitive=False),
+    help="Position for watermark"
+)
 def optimize(
     images: tuple,
     output_dir: str,
@@ -75,7 +92,10 @@ def optimize(
     min_quality: int,
     max_quality: int,
     verbose: bool,
-    dry_run: bool
+    dry_run: bool,
+    watermark: bool,
+    watermark_text: str,
+    watermark_position: str
 ):
     """
     Optimize images for web use.
@@ -87,6 +107,8 @@ def optimize(
         imagine optimize input.jpg -d my-optimized/
         imagine optimize input.jpg --target-size 150
         imagine optimize input.jpg --format jpeg
+        imagine optimize input.jpg --watermark --watermark-text "© 2026"
+        imagine optimize input.jpg --watermark --watermark-position center
     """
     # Expand glob patterns and collect all image paths
     image_paths = _collect_image_paths(images)
@@ -94,6 +116,15 @@ def optimize(
     if not image_paths:
         click.echo("No valid images found.", err=True)
         sys.exit(1)
+
+    # Map watermark position string to enum
+    position_map = {
+        "top-left": WatermarkPosition.TOP_LEFT,
+        "top-right": WatermarkPosition.TOP_RIGHT,
+        "bottom-left": WatermarkPosition.BOTTOM_LEFT,
+        "bottom-right": WatermarkPosition.BOTTOM_RIGHT,
+        "center": WatermarkPosition.CENTER,
+    }
 
     # Create configuration
     config = OptimizationConfig(
@@ -103,6 +134,9 @@ def optimize(
         max_dimension=max_dimension,
         min_quality=min_quality,
         max_quality=max_quality,
+        watermark=watermark,
+        watermark_text=watermark_text,
+        watermark_position=position_map[watermark_position.lower()],
     )
 
     # Show configuration if verbose
@@ -113,6 +147,8 @@ def optimize(
         click.echo(f"  Max dimension: {config.max_dimension}px")
         click.echo(f"  Quality range: {config.min_quality}-{config.max_quality}")
         click.echo(f"  Output directory: {config.output_dir}")
+        if config.watermark:
+            click.echo(f"  Watermark: {config.watermark_text} ({config.watermark_position.value})")
         click.echo()
 
     if dry_run:

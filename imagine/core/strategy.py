@@ -6,6 +6,7 @@ from PIL import Image
 
 from .config import ImageInfo, OptimizationConfig
 from .processor import (
+    add_watermark,
     compress_image,
     load_and_prepare_image,
     resize,
@@ -66,9 +67,12 @@ class AdaptiveStrategy:
         while iteration < self.config.max_iterations:
             iteration += 1
 
+            # Apply watermark if enabled
+            processing_img = add_watermark(img, self.config.watermark_text, self.config.watermark_position) if self.config.watermark else img
+
             # Try compression at current settings
             image_bytes = compress_image(
-                img,
+                processing_img,
                 self.config.output_format,
                 current_quality,
                 image_info.has_transparency
@@ -100,6 +104,14 @@ class AdaptiveStrategy:
             if dimension_scale < self.config.min_dimension_scale:
                 # Return best effort
                 width, height = img.size
+                # Apply watermark to final image if enabled
+                final_img = add_watermark(img, self.config.watermark_text, self.config.watermark_position) if self.config.watermark else img
+                image_bytes = compress_image(
+                    final_img,
+                    self.config.output_format,
+                    self.config.min_quality,
+                    image_info.has_transparency
+                )
                 return image_bytes, width, height, self.config.min_quality, iteration
 
             # Apply dimension reduction
@@ -110,6 +122,14 @@ class AdaptiveStrategy:
 
         # Max iterations reached - return best effort
         width, height = img.size
+        # Apply watermark to final image if enabled
+        final_img = add_watermark(img, self.config.watermark_text, self.config.watermark_position) if self.config.watermark else img
+        image_bytes = compress_image(
+            final_img,
+            self.config.output_format,
+            current_quality,
+            image_info.has_transparency
+        )
         return image_bytes, width, height, current_quality, iteration
 
 
@@ -153,9 +173,12 @@ class FastStrategy:
         # Use fixed quality of 80
         quality = 80
 
+        # Apply watermark if enabled
+        processing_img = add_watermark(img, self.config.watermark_text, self.config.watermark_position) if self.config.watermark else img
+
         # Compress
         image_bytes = compress_image(
-            img,
+            processing_img,
             self.config.output_format,
             quality,
             image_info.has_transparency

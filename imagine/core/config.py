@@ -20,6 +20,15 @@ class ImageOrientation(Enum):
     SQUARE = "square"
 
 
+class WatermarkPosition(Enum):
+    """Watermark position options."""
+    TOP_LEFT = "top_left"
+    TOP_RIGHT = "top_right"
+    BOTTOM_LEFT = "bottom_left"
+    BOTTOM_RIGHT = "bottom_right"
+    CENTER = "center"
+
+
 @dataclass
 class OptimizationConfig:
     """Configuration for image optimization."""
@@ -43,6 +52,9 @@ class OptimizationConfig:
     # Output settings
     preserve_originals: bool = True
     output_dir: str = "optimized"
+    watermark: bool = False  # Add watermark to optimized images
+    watermark_text: str = "Imagine"  # Text to use for watermark
+    watermark_position: WatermarkPosition = WatermarkPosition.BOTTOM_RIGHT  # Watermark position
 
     # Performance
     max_iterations: int = 20  # Prevent infinite loops

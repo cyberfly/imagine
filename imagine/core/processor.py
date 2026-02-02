@@ -4,9 +4,9 @@ import io
 from pathlib import Path
 from typing import Optional
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageDraw, ImageFont
 
-from .config import ImageFormat, ImageInfo, ImageOrientation
+from .config import ImageFormat, ImageInfo, ImageOrientation, WatermarkPosition
 
 
 def load_and_prepare_image(image_info: ImageInfo) -> Image.Image:
@@ -103,6 +103,94 @@ def scale_dimensions(
     new_height = max(new_height, 100)
 
     return img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+
+def add_watermark(
+    img: Image.Image,
+    text: str = "Imagine",
+    position: WatermarkPosition = WatermarkPosition.BOTTOM_RIGHT
+) -> Image.Image:
+    """
+    Add a watermark to the image.
+
+    Adds custom text at specified position with a semi-transparent background.
+
+    Args:
+        img: PIL Image object
+        text: Watermark text to display
+        position: Position for the watermark
+
+    Returns:
+        Image with watermark applied
+    """
+    # Create a copy to avoid modifying the original
+    watermarked = img.copy()
+
+    # Get image dimensions
+    width, height = watermarked.size
+
+    # Calculate font size based on image size (roughly 2% of image width)
+    font_size = max(12, int(width * 0.02))
+
+    # Try to use a better font, fall back to default if not available
+    try:
+        # Try common system fonts
+        font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", font_size)
+    except Exception:
+        try:
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
+        except Exception:
+            # Fall back to default font
+            font = ImageFont.load_default()
+
+    # Watermark text
+    watermark_text = text
+
+    # Create a drawing context
+    draw = ImageDraw.Draw(watermarked, "RGBA")
+
+    # Get text bounding box
+    bbox = draw.textbbox((0, 0), watermark_text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+
+    # Calculate padding
+    padding = max(10, int(width * 0.01))
+
+    # Calculate position based on selection
+    if position == WatermarkPosition.TOP_LEFT:
+        x = padding
+        y = padding
+    elif position == WatermarkPosition.TOP_RIGHT:
+        x = width - text_width - padding * 2
+        y = padding
+    elif position == WatermarkPosition.BOTTOM_LEFT:
+        x = padding
+        y = height - text_height - padding * 2
+    elif position == WatermarkPosition.BOTTOM_RIGHT:
+        x = width - text_width - padding * 2
+        y = height - text_height - padding * 2
+    elif position == WatermarkPosition.CENTER:
+        x = (width - text_width) // 2
+        y = (height - text_height) // 2
+    else:
+        # Default to bottom-right
+        x = width - text_width - padding * 2
+        y = height - text_height - padding * 2
+
+    # Draw semi-transparent background rectangle
+    bg_rect = [
+        x - padding,
+        y - padding,
+        x + text_width + padding,
+        y + text_height + padding
+    ]
+    draw.rectangle(bg_rect, fill=(0, 0, 0, 128))
+
+    # Draw text (white with slight transparency)
+    draw.text((x, y), watermark_text, font=font, fill=(255, 255, 255, 230))
+
+    return watermarked
 
 
 def compress_to_webp(

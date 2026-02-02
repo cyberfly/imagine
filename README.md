@@ -9,6 +9,7 @@ A Python-based image optimization tool that intelligently reduces high-resolutio
 - **Dual Interface**: Modern PyQt6 GUI (`imagine`) and CLI (`imagine-cli`)
 - **Smart Optimization**: Adaptive algorithm that balances quality and file size
 - **WebP Support**: Default output in WebP format (25-35% better compression than JPEG)
+- **Watermark Support**: Add customizable text watermarks with flexible positioning
 - **Aspect Ratio Preservation**: Maintains original proportions for all orientations
 - **Batch Processing**: Optimize multiple images at once with progress tracking
 - **Real-time Feedback**: Visual progress tracking and optimization statistics
@@ -78,6 +79,12 @@ imagine-cli optimize photo.jpg --target-size 150
 # Force JPEG output instead of WebP
 imagine-cli optimize photo.jpg --format jpeg
 
+# Add watermark
+imagine-cli optimize photo.jpg --watermark --watermark-text "© 2026"
+
+# Watermark with custom position
+imagine-cli optimize photo.jpg --watermark --watermark-position center
+
 # Show detailed progress
 imagine-cli optimize photos/*.jpg --verbose
 
@@ -102,6 +109,10 @@ Options:
   --max-dimension INTEGER         Max width/height in pixels [default: 1920]
   --min-quality INTEGER           Minimum quality (1-100) [default: 60]
   --max-quality INTEGER           Starting quality (1-100) [default: 85]
+  --watermark                     Add watermark to images
+  --watermark-text TEXT           Watermark text [default: Imagine]
+  --watermark-position            Position: top-left, top-right, bottom-left,
+                                  bottom-right, center [default: bottom-right]
   -v, --verbose                   Show detailed information
   --dry-run                       Preview without saving
   --help                          Show help message
@@ -129,6 +140,15 @@ Display information about an image:
 # Standard web optimization
 imagine-cli optimize hero-image.jpg
 # Result: optimized/hero-image.webp (<100KB)
+
+# Add copyright watermark
+imagine-cli optimize photo.jpg --watermark --watermark-text "© 2026 MyCompany"
+
+# Center watermark for portfolio images
+imagine-cli optimize portfolio.jpg --watermark --watermark-text "John Doe Photography" --watermark-position center
+
+# Top-right watermark
+imagine-cli optimize screenshot.png --watermark --watermark-position top-right
 
 # Smaller target for thumbnails
 imagine-cli optimize thumbnail.jpg --target-size 50

@@ -5,11 +5,11 @@ from pathlib import Path
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QFormLayout, QGroupBox,
     QSpinBox, QComboBox, QLineEdit, QPushButton,
-    QHBoxLayout, QFileDialog, QLabel, QAbstractSpinBox
+    QHBoxLayout, QFileDialog, QLabel, QAbstractSpinBox, QCheckBox
 )
 from PyQt6.QtCore import Qt, QSettings, pyqtSignal
 
-from imagine.core.config import OptimizationConfig, ImageFormat
+from imagine.core.config import OptimizationConfig, ImageFormat, WatermarkPosition
 
 
 class SettingsWidget(QWidget):
@@ -141,6 +141,29 @@ class SettingsWidget(QWidget):
             QPushButton:pressed {
                 background: rgba(139, 92, 246, 0.4);
             }
+            QCheckBox {
+                color: #e8e8e8;
+                font-size: 13px;
+                spacing: 8px;
+            }
+            QCheckBox::indicator {
+                width: 18px;
+                height: 18px;
+                border: 1px solid rgba(139, 92, 246, 0.3);
+                border-radius: 4px;
+                background: rgba(15, 15, 35, 0.6);
+            }
+            QCheckBox::indicator:hover {
+                border: 1px solid rgba(139, 92, 246, 0.5);
+                background: rgba(15, 15, 35, 0.8);
+            }
+            QCheckBox::indicator:checked {
+                background: rgba(139, 92, 246, 0.6);
+                border: 1px solid rgba(139, 92, 246, 0.8);
+            }
+            QCheckBox::indicator:checked:hover {
+                background: rgba(139, 92, 246, 0.7);
+            }
         """
         stylesheet = stylesheet.replace("ARROW_UP_PATH", arrow_up)
         stylesheet = stylesheet.replace("ARROW_DOWN_PATH", arrow_down)
@@ -205,6 +228,32 @@ class SettingsWidget(QWidget):
 
         form_layout.addRow("Output Directory:", output_layout)
 
+        # Watermark
+        self.watermark_checkbox = QCheckBox("Add watermark to optimized images")
+        self.watermark_checkbox.setChecked(False)
+        self.watermark_checkbox.stateChanged.connect(self._on_settings_changed)
+        form_layout.addRow("", self.watermark_checkbox)
+
+        # Watermark Text
+        self.watermark_text_edit = QLineEdit()
+        self.watermark_text_edit.setText("Imagine")
+        self.watermark_text_edit.setPlaceholderText("Enter watermark text")
+        self.watermark_text_edit.textChanged.connect(self._on_settings_changed)
+        form_layout.addRow("Watermark Text:", self.watermark_text_edit)
+
+        # Watermark Position
+        self.watermark_position_combo = QComboBox()
+        self.watermark_position_combo.addItems([
+            "Top Left",
+            "Top Right",
+            "Bottom Left",
+            "Bottom Right",
+            "Center"
+        ])
+        self.watermark_position_combo.setCurrentText("Bottom Right")
+        self.watermark_position_combo.currentTextChanged.connect(self._on_settings_changed)
+        form_layout.addRow("Watermark Position:", self.watermark_position_combo)
+
         group_box.setLayout(form_layout)
         layout.addWidget(group_box)
 
@@ -243,6 +292,9 @@ class SettingsWidget(QWidget):
         self.settings.setValue("min_quality", self.min_quality_spin.value())
         self.settings.setValue("max_quality", self.max_quality_spin.value())
         self.settings.setValue("output_dir", self.output_dir_edit.text())
+        self.settings.setValue("watermark", self.watermark_checkbox.isChecked())
+        self.settings.setValue("watermark_text", self.watermark_text_edit.text())
+        self.settings.setValue("watermark_position", self.watermark_position_combo.currentText())
 
     def _load_settings(self):
         """Load settings from QSettings."""
@@ -253,6 +305,9 @@ class SettingsWidget(QWidget):
         self.min_quality_spin.blockSignals(True)
         self.max_quality_spin.blockSignals(True)
         self.output_dir_edit.blockSignals(True)
+        self.watermark_checkbox.blockSignals(True)
+        self.watermark_text_edit.blockSignals(True)
+        self.watermark_position_combo.blockSignals(True)
 
         self.target_size_spin.setValue(
             self.settings.value("target_size_kb", 100, type=int)
@@ -272,6 +327,15 @@ class SettingsWidget(QWidget):
         self.output_dir_edit.setText(
             self.settings.value("output_dir", "optimized", type=str)
         )
+        self.watermark_checkbox.setChecked(
+            self.settings.value("watermark", False, type=bool)
+        )
+        self.watermark_text_edit.setText(
+            self.settings.value("watermark_text", "Imagine", type=str)
+        )
+        self.watermark_position_combo.setCurrentText(
+            self.settings.value("watermark_position", "Bottom Right", type=str)
+        )
 
         # Unblock signals
         self.target_size_spin.blockSignals(False)
@@ -280,6 +344,9 @@ class SettingsWidget(QWidget):
         self.min_quality_spin.blockSignals(False)
         self.max_quality_spin.blockSignals(False)
         self.output_dir_edit.blockSignals(False)
+        self.watermark_checkbox.blockSignals(False)
+        self.watermark_text_edit.blockSignals(False)
+        self.watermark_position_combo.blockSignals(False)
 
     def get_config(self) -> OptimizationConfig:
         """
@@ -295,6 +362,15 @@ class SettingsWidget(QWidget):
             "PNG": ImageFormat.PNG,
         }
 
+        # Map UI position name to WatermarkPosition enum
+        position_map = {
+            "Top Left": WatermarkPosition.TOP_LEFT,
+            "Top Right": WatermarkPosition.TOP_RIGHT,
+            "Bottom Left": WatermarkPosition.BOTTOM_LEFT,
+            "Bottom Right": WatermarkPosition.BOTTOM_RIGHT,
+            "Center": WatermarkPosition.CENTER,
+        }
+
         return OptimizationConfig(
             target_size_kb=self.target_size_spin.value(),
             output_format=format_map[self.format_combo.currentText()],
@@ -302,4 +378,7 @@ class SettingsWidget(QWidget):
             min_quality=self.min_quality_spin.value(),
             max_quality=self.max_quality_spin.value(),
             output_dir=self.output_dir_edit.text(),
+            watermark=self.watermark_checkbox.isChecked(),
+            watermark_text=self.watermark_text_edit.text(),
+            watermark_position=position_map[self.watermark_position_combo.currentText()],
         )
