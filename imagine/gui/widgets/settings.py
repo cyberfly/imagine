@@ -254,6 +254,22 @@ class SettingsWidget(QWidget):
         self.watermark_position_combo.currentTextChanged.connect(self._on_settings_changed)
         form_layout.addRow("Watermark Position:", self.watermark_position_combo)
 
+        # Watermark Font Size
+        self.watermark_font_size_spin = QSpinBox()
+        self.watermark_font_size_spin.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.UpDownArrows)
+        self.watermark_font_size_spin.setRange(0, 200)
+        self.watermark_font_size_spin.setValue(0)
+        self.watermark_font_size_spin.setSuffix(" px")
+        self.watermark_font_size_spin.setSpecialValueText("Auto")
+        self.watermark_font_size_spin.valueChanged.connect(self._on_settings_changed)
+        form_layout.addRow("Watermark Font Size:", self.watermark_font_size_spin)
+
+        # Watermark Transparent Background
+        self.watermark_transparent_bg_checkbox = QCheckBox("Use transparent background (no background rectangle)")
+        self.watermark_transparent_bg_checkbox.setChecked(False)
+        self.watermark_transparent_bg_checkbox.stateChanged.connect(self._on_settings_changed)
+        form_layout.addRow("", self.watermark_transparent_bg_checkbox)
+
         group_box.setLayout(form_layout)
         layout.addWidget(group_box)
 
@@ -295,6 +311,8 @@ class SettingsWidget(QWidget):
         self.settings.setValue("watermark", self.watermark_checkbox.isChecked())
         self.settings.setValue("watermark_text", self.watermark_text_edit.text())
         self.settings.setValue("watermark_position", self.watermark_position_combo.currentText())
+        self.settings.setValue("watermark_font_size", self.watermark_font_size_spin.value())
+        self.settings.setValue("watermark_transparent_bg", self.watermark_transparent_bg_checkbox.isChecked())
 
     def _load_settings(self):
         """Load settings from QSettings."""
@@ -308,6 +326,8 @@ class SettingsWidget(QWidget):
         self.watermark_checkbox.blockSignals(True)
         self.watermark_text_edit.blockSignals(True)
         self.watermark_position_combo.blockSignals(True)
+        self.watermark_font_size_spin.blockSignals(True)
+        self.watermark_transparent_bg_checkbox.blockSignals(True)
 
         self.target_size_spin.setValue(
             self.settings.value("target_size_kb", 100, type=int)
@@ -336,6 +356,12 @@ class SettingsWidget(QWidget):
         self.watermark_position_combo.setCurrentText(
             self.settings.value("watermark_position", "Bottom Right", type=str)
         )
+        self.watermark_font_size_spin.setValue(
+            self.settings.value("watermark_font_size", 0, type=int)
+        )
+        self.watermark_transparent_bg_checkbox.setChecked(
+            self.settings.value("watermark_transparent_bg", False, type=bool)
+        )
 
         # Unblock signals
         self.target_size_spin.blockSignals(False)
@@ -347,6 +373,8 @@ class SettingsWidget(QWidget):
         self.watermark_checkbox.blockSignals(False)
         self.watermark_text_edit.blockSignals(False)
         self.watermark_position_combo.blockSignals(False)
+        self.watermark_font_size_spin.blockSignals(False)
+        self.watermark_transparent_bg_checkbox.blockSignals(False)
 
     def get_config(self) -> OptimizationConfig:
         """
@@ -382,4 +410,6 @@ class SettingsWidget(QWidget):
             watermark=self.watermark_checkbox.isChecked(),
             watermark_text=self.watermark_text_edit.text(),
             watermark_position=position_map[self.watermark_position_combo.currentText()],
+            watermark_font_size=self.watermark_font_size_spin.value(),
+            watermark_transparent_bg=self.watermark_transparent_bg_checkbox.isChecked(),
         )

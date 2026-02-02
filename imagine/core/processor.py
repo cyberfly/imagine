@@ -115,17 +115,21 @@ def scale_dimensions(
 def add_watermark(
     img: Image.Image,
     text: str = "Imagine",
-    position: WatermarkPosition = WatermarkPosition.BOTTOM_RIGHT
+    position: WatermarkPosition = WatermarkPosition.BOTTOM_RIGHT,
+    font_size: int = 0,
+    transparent_bg: bool = False
 ) -> Image.Image:
     """
     Add a watermark to the image.
 
-    Adds custom text at specified position with a semi-transparent background.
+    Adds custom text at specified position with optional background.
 
     Args:
         img: PIL Image object
         text: Watermark text to display
         position: Position for the watermark
+        font_size: Font size in pixels (0 = auto-calculate based on image size)
+        transparent_bg: If True, no background rectangle is drawn
 
     Returns:
         Image with watermark applied
@@ -136,8 +140,9 @@ def add_watermark(
     # Get image dimensions
     width, height = watermarked.size
 
-    # Calculate font size based on image size (roughly 2% of image width)
-    font_size = max(12, int(width * 0.02))
+    # Calculate font size based on image size if not specified (roughly 2% of image width)
+    if font_size == 0:
+        font_size = max(12, int(width * 0.02))
 
     # Try to use a better font, fall back to default if not available
     try:
@@ -185,14 +190,15 @@ def add_watermark(
         x = width - text_width - padding * 2
         y = height - text_height - padding * 2
 
-    # Draw semi-transparent background rectangle
-    bg_rect = [
-        x - padding,
-        y - padding,
-        x + text_width + padding,
-        y + text_height + padding
-    ]
-    draw.rectangle(bg_rect, fill=(0, 0, 0, 128))
+    # Draw semi-transparent background rectangle (if not transparent)
+    if not transparent_bg:
+        bg_rect = [
+            x - padding,
+            y - padding,
+            x + text_width + padding,
+            y + text_height + padding
+        ]
+        draw.rectangle(bg_rect, fill=(0, 0, 0, 128))
 
     # Draw text (white with slight transparency)
     draw.text((x, y), watermark_text, font=font, fill=(255, 255, 255, 230))

@@ -68,7 +68,7 @@ class AdaptiveStrategy:
             iteration += 1
 
             # Apply watermark if enabled
-            processing_img = add_watermark(img, self.config.watermark_text, self.config.watermark_position) if self.config.watermark else img
+            processing_img = add_watermark(img, self.config.watermark_text, self.config.watermark_position, self.config.watermark_font_size, self.config.watermark_transparent_bg) if self.config.watermark else img
 
             # Try compression at current settings
             image_bytes = compress_image(
@@ -105,7 +105,7 @@ class AdaptiveStrategy:
                 # Return best effort
                 width, height = img.size
                 # Apply watermark to final image if enabled
-                final_img = add_watermark(img, self.config.watermark_text, self.config.watermark_position) if self.config.watermark else img
+                final_img = add_watermark(img, self.config.watermark_text, self.config.watermark_position, self.config.watermark_font_size, self.config.watermark_transparent_bg) if self.config.watermark else img
                 image_bytes = compress_image(
                     final_img,
                     self.config.output_format,

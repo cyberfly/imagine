@@ -83,6 +83,17 @@ def cli():
     type=click.Choice(["top-left", "top-right", "bottom-left", "bottom-right", "center"], case_sensitive=False),
     help="Position for watermark"
 )
+@click.option(
+    "--watermark-font-size",
+    default=0,
+    help="Font size in pixels (0 = auto-calculate based on image size)",
+    type=int
+)
+@click.option(
+    "--watermark-transparent-bg",
+    is_flag=True,
+    help="Use transparent background (no background rectangle)"
+)
 def optimize(
     images: tuple,
     output_dir: str,
@@ -95,7 +106,9 @@ def optimize(
     dry_run: bool,
     watermark: bool,
     watermark_text: str,
-    watermark_position: str
+    watermark_position: str,
+    watermark_font_size: int,
+    watermark_transparent_bg: bool
 ):
     """
     Optimize images for web use.
@@ -109,6 +122,8 @@ def optimize(
         imagine optimize input.jpg --format jpeg
         imagine optimize input.jpg --watermark --watermark-text "© 2026"
         imagine optimize input.jpg --watermark --watermark-position center
+        imagine optimize input.jpg --watermark --watermark-font-size 48
+        imagine optimize input.jpg --watermark --watermark-transparent-bg
     """
     # Expand glob patterns and collect all image paths
     image_paths = _collect_image_paths(images)
@@ -137,6 +152,8 @@ def optimize(
         watermark=watermark,
         watermark_text=watermark_text,
         watermark_position=position_map[watermark_position.lower()],
+        watermark_font_size=watermark_font_size,
+        watermark_transparent_bg=watermark_transparent_bg,
     )
 
     # Show configuration if verbose
@@ -148,7 +165,11 @@ def optimize(
         click.echo(f"  Quality range: {config.min_quality}-{config.max_quality}")
         click.echo(f"  Output directory: {config.output_dir}")
         if config.watermark:
+            font_size_str = f"{config.watermark_font_size}px" if config.watermark_font_size > 0 else "auto"
+            bg_str = "transparent" if config.watermark_transparent_bg else "semi-transparent"
             click.echo(f"  Watermark: {config.watermark_text} ({config.watermark_position.value})")
+            click.echo(f"  Watermark font size: {font_size_str}")
+            click.echo(f"  Watermark background: {bg_str}")
         click.echo()
 
     if dry_run:

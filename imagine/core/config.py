@@ -56,6 +56,8 @@ class OptimizationConfig:
     watermark: bool = False  # Add watermark to optimized images
     watermark_text: str = "Imagine"  # Text to use for watermark
     watermark_position: WatermarkPosition = WatermarkPosition.BOTTOM_RIGHT  # Watermark position
+    watermark_font_size: int = 0  # Font size (0 = auto-calculate based on image size)
+    watermark_transparent_bg: bool = False  # Use transparent background (no background rectangle)
 
     # Performance
     max_iterations: int = 20  # Prevent infinite loops
